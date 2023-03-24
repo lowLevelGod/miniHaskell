@@ -86,6 +86,7 @@ normalize :: Exp -> Exp
 normalize (App (X v) e2) = App (X v) (normalize e2)
 normalize (App (Lam v e1) e2) = normalize (substitute v e2 e1)
 normalize (App e1 e2) = normalize $ App (normalize e1) e2
+normalize (Lam v e) = Lam v (normalize e)
 normalize x = x
 
 -- >>> normalize (X (makeIndexedVar "x"))
