@@ -37,7 +37,6 @@ ghc-options:
 
 library:
   source-dirs: src
-
 executables:
   miniHaskell-exe:
     main:                Main.hs

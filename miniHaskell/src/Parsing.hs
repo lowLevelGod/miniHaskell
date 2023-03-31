@@ -2,10 +2,14 @@ module Parsing where
 
 import Exp
 import Text.ParserCombinators.Parsec
+    ( char, space, string, eof, parse, Parser )
 import Text.ParserCombinators.Parsec.Language
     ( haskellStyle, LanguageDef )
 import Text.ParserCombinators.Parsec.Token
 import Control.Applicative (some)
+import Control.Applicative ((<|>), Alternative (many))
+import Text.Parsec (try)
+import Text.Parsec (choice)
 
 miniHaskellDef :: LanguageDef st
 miniHaskellDef = haskellStyle
@@ -88,18 +92,23 @@ parenExp = parens miniHs expr
 -- CX (Var {getVar = "a"})
 
 basicExp :: Parser ComplexExp
-basicExp = lambdaExp <|> letrecExp <|> letExp <|> listExp <|> natExp <|> parenExp <|> varExp
+basicExp = choice [try lambdaExp, try letExp, try letrecExp, try listExp, try natExp, try parenExp, try varExp]
 -- >>> testParse basicExp "[a,b,c]"
 -- List [CX (Var {getVar = "a"}),CX (Var {getVar = "b"}),CX (Var {getVar = "c"})]
+
 
 cappFromList (x : [y]) = CApp x y 
 cappFromList (x : xs) = CApp x (cappFromList xs)
 
 capp :: Parser ComplexExp
-capp = cappFromList <$> some basicExp
+capp = do 
+        f <- basicExp 
+        s <- basicExp
+        r <- many basicExp
+        cappFromList <$> return (f : (s : r))
 
 expr :: Parser ComplexExp
-expr = basicExp
+expr = choice [try basicExp, try capp]
 -- >>> testParse expr "\\x -> [x,y,z]"
 -- CLam (Var {getVar = "x"}) (List [CX (Var {getVar = "x"}),CX (Var {getVar = "y"}),CX (Var {getVar = "z"})])
 
