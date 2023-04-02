@@ -25,14 +25,16 @@ instance NatClass Natural.Natural where
   iter f i n = f (iter f i (n `Natural.minusNatural` 1))
 
 one :: NatClass n => n
-one = undefined
+one = succ zero
 
 -- >>> one :: Natural.Natural
 -- 1
 
 -- | The isZero function returns 'true' iff its argument is 'zero'.
 isZero :: NatClass n => n -> CBool
-isZero = undefined
+isZero n = not (CBool (\x y -> iter (const y) x n))
+
+-- λnxy.n (λz.y) x
 
 -- >>> isZero (one :: Natural.Natural)
 -- CFalse

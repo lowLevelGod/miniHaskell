@@ -21,7 +21,7 @@ instance PairClass (,) where
   uncurry = Tuple.uncurry
 
 -- | curry converts a functio on pairs to a curried function (of two arguments).
-curry :: (PairClass p) => (p a b -> c) -> (a -> b -> c)
+curry :: (PairClass p) => (p a b -> c) -> a -> b -> c
 curry f x y = f (pair x y)
 
 -- | Extract the first component of a pair.
@@ -33,7 +33,7 @@ fst = uncurry const
 
 -- | Extract the second component of a pair.
 snd :: (PairClass p) => p a b -> b
-snd = undefined
+snd = uncurry (\x y -> y)
 
 -- >>> snd (pair true (just false) :: (CBool, CMaybe CBool))
 -- CJust CFalse
@@ -42,7 +42,7 @@ newtype CPair a b = CPair { getCPair :: forall c . (a -> b -> c) -> c }
 
 instance PairClass CPair where
   uncurry f p = getCPair p f
-  pair = undefined
+  pair x y = CPair (\f -> f x y)
 
 -- | converting between different instances of 'PairClass'
 fromPairClass :: (PairClass p, PairClass q) => p a b -> q a b
