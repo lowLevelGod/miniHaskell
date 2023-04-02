@@ -25,10 +25,17 @@ source-repository head
 
 library
   exposed-modules:
+      BoolClass
+      EitherClass
       Eval
       Exp
       Lab2
       Lib
+      ListClass
+      MaybeClass
+      MyPrelude
+      NatClass
+      PairClass
       Parsing
       Printing
       REPLCommand

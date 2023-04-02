@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 module BoolClass where
 
 import Prelude (Show (..), (<>), undefined) -- for show instances
@@ -52,8 +53,8 @@ not p = ite p false true
 newtype CBool = CBool { getCBool :: forall a. a -> a -> a}
 
 instance BoolClass CBool where
-  true = CBool const 
-  false = CBool (\a b -> b)
+  true = CBool (\a b -> b)
+  false = CBool const
   bool f t b = getCBool b f t
 
 -- >>> ite (true :: CBool) 1 2
