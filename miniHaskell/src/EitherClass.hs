@@ -30,7 +30,7 @@ instance EitherClass Either.Either where
 -- If the 'EitherClass' is 'right' @x@, it returns the default value;
 -- otherwise, it returns the value contained in the 'left'.
 fromLeft :: (EitherClass e) => a -> e a b -> a
-fromLeft = undefined
+fromLeft d = either id (const d)
 
 -- >>> fromLeft true (left false :: Either.Either CBool CBool)
 -- CFalse
@@ -42,7 +42,7 @@ fromLeft = undefined
 -- If the 'EitherClass' is  of the form $'left' _@, it returns the default value;
 -- otherwise, it returns the value contained in the 'right'.
 fromRight :: (EitherClass e) => b -> e a b -> b
-fromRight = undefined
+fromRight d = either (const d) id
 
 -- >>> fromRight true (left false :: Either.Either CBool CBool)
 -- CTrue
@@ -52,28 +52,28 @@ fromRight = undefined
 
 -- | The isLeft function returns 'true' iff its argument is of the form @'left' _@.
 isLeft :: (EitherClass e, BoolClass b) => e l r -> b
-isLeft = undefined
+isLeft = either (const true) (const false)
 
 -- >>> isLeft (left false :: Either.Either CBool CBool) :: CBool
 -- CTrue
 
 -- | The isRight function returns 'true' iff its argument is of the form @'right' _@.
 isRight :: (EitherClass e, BoolClass b) => e l r -> b
-isRight = undefined
+isRight = either (const false) (const true)
 
 -- >>> isRight (left true :: Either.Either CBool CBool) :: CBool
 -- CFalse
 
 -- | The 'left' 'Functor' instance for 'EitherClass'
 eitherLeftMap :: EitherClass e => (a -> a') -> e a b -> e a' b
-eitherLeftMap = undefined
+eitherLeftMap f = either (left . f) right
 
 -- >>> eitherLeftMap not (left true) :: Either.Either CBool CBool
 -- Left CFalse
 
 -- | The 'right' 'Functor' instance for 'EitherClass'
 eitherRightMap :: EitherClass e => (b -> b') -> e a b -> e a b'
-eitherRightMap = undefined
+eitherRightMap f = either left (right . f)
 
 -- >>> eitherRightMap not (left true) :: Either.Either CBool CBool
 -- Left CTrue
@@ -81,8 +81,8 @@ eitherRightMap = undefined
 newtype CEither a b = CEither { getCEither :: forall c . (a -> c) -> (b -> c) -> c }
 
 instance EitherClass CEither where
-  left = undefined
-  right = undefined
+  left a = CEither (\l r -> l a) 
+  right a = CEither (\l r -> r a) 
   either lHandle rHandle e = getCEither e lHandle rHandle
 
 -- >>> fromLeft true (left false :: CEither CBool CBool)
