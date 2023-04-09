@@ -72,16 +72,27 @@ pred n = ite (isZero n) nothing (just (snd nonZero))
 -- >>> pred zero :: CMaybe Natural.Natural
 -- CNothing
 
+res1 :: NatClass n  => n -> n -> CMaybe n
+res1 x y = just (iter f x y)
+          where           
+          f :: NatClass n => n -> n
+          f p = fromMaybe zero (pred p)  
 
+res2 :: NatClass n  => n -> n -> CMaybe n
+res2 x y = just (iter f (succ x) y)
+          where           
+          f :: NatClass n => n -> n
+          f p = fromMaybe zero (pred p)  
+
+conv1 :: NatClass n  => n -> n -> n
+conv1 x y = fromMaybe zero (res1 x y)
+          
+secondCase :: NatClass n  => n -> n -> CMaybe n
+secondCase x y = ite (isZero (fromMaybe zero (res2 x y))) nothing (res1 x y)
 -- | Difference between natural numbers as a 'MaybeClass' ('nothing' if first is smaller)
 sub :: NatClass n  => n -> n -> CMaybe n
 sub x y 
-  = ite (isZero (fromMaybe zero res1)) secondCase res1
-    where
-          res1 = just (iter f x y)
-          res2 = just (iter f (succ x) y)
-          f p = fromMaybe zero (pred p)  
-          secondCase = ite (isZero (fromMaybe zero res2)) nothing res2
+  = ite (isZero (conv1 x y)) (secondCase x y) (res1 x y)
 
 -- >>> sub (exp (add one one) (add one one)) one :: CMaybe Natural.Natural
 -- CJust 3
