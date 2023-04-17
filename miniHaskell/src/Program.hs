@@ -1,15 +1,17 @@
 
 module Program where
 import Exp
-import Lab2 ( Parser, endOfInput, whiteSpace, reserved, semiSep1 )
+import Lab2 ( Parser, endOfInput, whiteSpace, reserved, semiSep1, parseFromFile )
 import Parsing ( expr, var, parseFirst, exprParser )
-import Sugar ( desugarExp, desugarVar )
+import Sugar ( desugarExp, desugarVar, sugarExp )
 import Eval ( substitute )
 
 import Control.Applicative ( Alternative(..) )
-import System.IO ( stderr, hPutStrLn )
+import System.IO ( stderr, hPutStrLn, stdout, hFlush )
 import qualified Data.Map.Strict as Map
-import Data.Map.Strict (fromList)
+import Data.Map.Strict (fromList, lookup)
+import REPLCommand
+import Printing (showExp)
 
 data Definition = Definition
   { defHead :: Var
@@ -54,5 +56,35 @@ programEnv :: [Definition] -> Environment
 programEnv pgm = fromList (map (\d -> (desugarVar (defHead d), (desugarExp . definitionExp) d )) pgm)
 
 normalizeEnv :: Environment -> Exp -> Exp
-normalizeEnv = undefined
+normalizeEnv env e = maybe e (normalizeEnv env) (step e)
+  where
+    step (X x) = Data.Map.Strict.lookup x env 
+    step (Lam x e) = Lam x <$> step e
+    step (App (Lam x ex) e) = Just (substitute x e ex)
+    step (App e1 e2)
+      = case step e1 of
+        Nothing -> App e1 <$> step e2
+        Just e1' -> Just (App e1' e2)
 
+execute :: Environment -> IO ()
+execute env 
+  = do
+    putStr "miniHaskell> "
+    hFlush stdout
+    s <- getLine
+    case parseFirst replCommand s of
+          Nothing -> putStrLn "Cannot parse command" >> execute env 
+          Just Quit -> return ()
+          Just (Load file) -> 
+              do result <- parseFromFile program file
+                 case result of 
+                    (Left x) -> putStrLn x >> execute env 
+                    (Right x) -> programEnv x >>= execute env  
+          Just (Eval es) ->
+            case parseFirst exprParser es of
+              Nothing -> putStrLn "Error: cannot parse expression" >> execute env  
+              Just e ->
+                let simpleE = desugarExp e
+                    simpleE' = normalizeEnv env simpleE
+                    e' = sugarExp simpleE'
+                 in putStrLn (showExp e') >> execute env 
