@@ -9,6 +9,7 @@ import Eval ( substitute )
 import Control.Applicative ( Alternative(..) )
 import System.IO ( stderr, hPutStrLn )
 import qualified Data.Map.Strict as Map
+import Data.Map.Strict (fromList)
 
 data Definition = Definition
   { defHead :: Var
@@ -50,7 +51,7 @@ definitionExp def = foldr CLam (defBody def) (defArgs def)
 type Environment = Map.Map IndexedVar Exp
 
 programEnv :: [Definition] -> Environment
-programEnv pgm = undefined
+programEnv pgm = fromList (map (\d -> (desugarVar (defHead d), (desugarExp . definitionExp) d )) pgm)
 
 normalizeEnv :: Environment -> Exp -> Exp
 normalizeEnv = undefined
