@@ -13,27 +13,27 @@ import Program
 import Data.Map.Strict (empty)
 
 execute :: Environment -> IO ()
-execute env 
+execute env
   = do
     putStr "miniHaskell> "
     hFlush stdout
     s <- getLine
     case parseFirst replCommand s of
-          Nothing -> putStrLn "Cannot parse command" >> execute env 
+          Nothing -> putStrLn "Cannot parse command" >> execute env
           Just Quit -> return ()
-          Just (Load file) -> 
+          Just (Load file) ->
               do result <- parseFromFile program file
-                 case result of 
-                    (Left x) -> putStrLn x >> execute env 
-                    (Right x) -> programEnv x >>= execute env  
+                 case result of
+                    (Left x) -> putStrLn x >> execute env
+                    (Right x) -> execute (programEnv x)
           Just (Eval es) ->
             case parseFirst exprParser es of
-              Nothing -> putStrLn "Error: cannot parse expression" >> execute env  
+              Nothing -> putStrLn "Error: cannot parse expression" >> execute env
               Just e ->
                 let simpleE = desugarExp e
                     simpleE' = normalizeEnv env simpleE
                     e' = sugarExp simpleE'
-                 in putStrLn (showExp e') >> execute env 
+                 in putStrLn (showExp e') >> execute env
 
 
 main :: IO ()
