@@ -10,3 +10,7 @@ bool f t b := b f t ;
 
 ite b t e := bool e t b ;
 
+iter f i n := n f i ; 
+zero f x := x ;
+succ f x n := f (n f x) ;
+
